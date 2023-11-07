@@ -33,6 +33,7 @@ class Vector:
     def __mul__(self, other):
         if type(other) == Vector:
             raise NotImplementedError
+        # TODO make this work for calculating normals
         if type(other) == int or type(other) == float:
             raise NotImplementedError
         else:
@@ -72,17 +73,16 @@ class Quaternion(Vector):
             z=round(rotate_axis.z * math.sin(rotation_angle / 2), 4)
         )
 
+    @property
+    def length(self) -> float:
+        return (self.x ** 2 + self.y ** 2 + self.z ** 2 + self.w) ** 0.5
+
     def __str__(self):
         return f'({self.w}, {self.x}, {self.y}, {self.z})'
 
     def normalize(self):
         length = self.length
-        return Quaternion(
-            w=self.w,
-            x=round(self.x / length, 4),
-            y=round(self.y / length, 4),
-            z=round(self.z / length, 4)
-        )
+        return self * (1 / length)
 
     def invert(self):
         return Quaternion(
@@ -96,7 +96,14 @@ class Quaternion(Vector):
         raise TypeError
 
     def __mul__(self, other):
-        if type(other) == Quaternion:
+        if type(other) == int | float:
+            return Quaternion(
+                w=round(self.w / other, 4),
+                x=round(self.x / other, 4),
+                y=round(self.y / other, 4),
+                z=round(self.z / other, 4)
+            )
+        elif type(other) == Quaternion:
             return Quaternion(
                 w=round(self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z, 4),
                 x=round(self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y, 4),
@@ -105,7 +112,7 @@ class Quaternion(Vector):
             )
         elif type(other) == Vector:
             return Quaternion(
-                w=round(self.x * other.x - self.y * other.y - self.z * other.z, 4),
+                w=round(-self.x * other.x - self.y * other.y - self.z * other.z, 4),
                 x=round(self.w * other.x + self.y * other.z - self.z * other.y, 4),
                 y=round(self.w * other.y - self.x * other.z + self.z * other.x, 4),
                 z=round(self.w * other.z + self.x * other.y - self.y * other.x, 4)
@@ -114,11 +121,12 @@ class Quaternion(Vector):
             raise TypeError
 
     def to_tuple(self):
-        return self.x, self.y, self.z, self.w
+        return self.w, self.x, self.y, self.z
 
 
 def rotate_vector_by_quaternion(vector: Vector, quaternion: Quaternion) -> Vector:
-    resulting_vector = quaternion * vector * quaternion.invert()
+    resulting_vector = quaternion * vector
+    resulting_vector *= quaternion.invert()
 
     return Vector(
         x=resulting_vector.x,
