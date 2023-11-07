@@ -113,6 +113,9 @@ class Quaternion(Vector):
         else:
             raise TypeError
 
+    def to_tuple(self):
+        return self.x, self.y, self.z, self.w
+
 
 def rotate_vector_by_quaternion(vector: Vector, quaternion: Quaternion) -> Vector:
     resulting_vector = quaternion * vector * quaternion.invert()
