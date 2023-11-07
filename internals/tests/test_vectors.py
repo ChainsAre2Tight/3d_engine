@@ -74,6 +74,28 @@ class TestQuaternions(unittest.TestCase):
         self.assertEqual("(0.7071, 0.7071, 0.0, 0.0)", str(res))
 
 
+class TestQuaternionCreation(unittest.TestCase):
+    def test_1(self):
+        q = Quaternion.from_euler(0.785, (1, 0, 0))
+        self.assertEqual((0.3825, 0, 0, 0.924), q.to_tuple())
+
+    def test_2(self):
+        q = Quaternion.from_euler(0.785, (1, 1, 0))
+        self.assertEqual((0.2705, 0.2705, 0, 0.924), q.to_tuple())
+
+    def test_3(self):
+        q = Quaternion.from_euler(0.785, (1, 1, 1))
+        self.assertEqual((0.2209, 0.2209, 0.2209, 0.924), q.to_tuple())
+
+    def test_4(self):
+        q = Quaternion.from_euler(4, (1, 2, -3))
+        self.assertEqual((0.2431, 0.4860, -0.7291, -0.4161), q.to_tuple())
+
+    def test_5(self):
+        q = Quaternion.from_euler(-32, (5, 2, 8))
+        self.assertEqual((0.1493, 0.0597, 0.2388, -0.9577), q.to_tuple())
+
+
 class TestVectorRotation(unittest.TestCase):
     def test_1(self):
         vector = Vector(0, 0, 1)
