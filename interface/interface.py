@@ -10,7 +10,7 @@ class Window:
     fov = math.pi / 5
     aspect_ratio = 1
     camera_position = Vector(0, 0, -10)
-    screen_height = 512
+    screen_height = 800
     camera_angle = Quaternion.from_euler(0, (0, 1, 0, 0))
 
     def __init__(self):
