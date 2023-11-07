@@ -7,17 +7,19 @@ class _AbstractHandler(ABC):
     pass
 
 
-def random_color() -> str:
-    colors = (
+def random_color(exclude: str = '') -> str:
+    colors = [
         "black",
-        "white",
+        # "white",
         "red",
         "green",
         "blue",
         "cyan",
         "yellow",
         "magenta",
-    )
+    ]
+    if exclude != "":
+        colors.remove(exclude)
     return random.choice(colors)
 
 
@@ -84,7 +86,7 @@ class FileHandler(_AbstractHandler):
                     )
                     t1, t2 = quad.get_polygons()
                     t1.color = random_color()
-                    t2.color = random_color()
+                    t2.color = random_color(t1.color)
 
                     res[current_object]["polygons"].append(t1)
                     res[current_object]["polygons"].append(t2)
