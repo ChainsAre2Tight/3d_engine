@@ -78,3 +78,28 @@ class Polygon(Line):
     @property
     def vertices(self):
         return self.first, self.second, self.third
+
+
+class Quad(Polygon):
+    def __init__(self, first: Vertex, second: Vertex, third: Vertex, fourth: Vertex, color: str):
+        super().__init__(first, second, third, color)
+        self.fourth = fourth
+
+    @property
+    def vertices(self):
+        return self.first, self.second, self.third, self.fourth
+
+    def get_polygons(self) -> tuple[Polygon, Polygon]:
+        return Polygon(
+            first=self.first,
+            second=self.second,
+            third=self.third,
+            color=self.color
+        ), Polygon(
+            first=self.first,
+            second=self.third,
+            third=self.fourth,
+            color=self.color
+        )
+
+
