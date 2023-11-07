@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-from internals.render import get_polygons, get_lines
+from internals.render import Renderer
 from internals.vectors import Vector, Quaternion, rotate_vector_by_quaternion
 import internals.handlers
 import math
@@ -9,7 +9,7 @@ import math
 class Window:
     fov = math.pi / 5
     aspect_ratio = 1
-    camera_position = Vector(0, 0, -320)
+    camera_position = Vector(0, 0, -10)
     screen_height = 512
     camera_angle = Quaternion.from_euler(0, (0, 1, 0, 0))
 
@@ -24,8 +24,7 @@ class Window:
         # initialize handlers
         self.data_handler = internals.handlers.DataHandler()
         # TODO read real file name
-        self.data_handler.read_file(file_name="AXAXAXAXA ti lox")
-
+        self.data_handler.read_file(file_path="../data", file_name="cube.obj")
 
         # initialize and place widgets
         self.canvas = Canvas(self.root, width=int(self.aspect_ratio * self.screen_height), height=self.screen_height,
@@ -37,9 +36,7 @@ class Window:
 
         self.center_frame = Frame(self.button_frame)
 
-
         self.refresh_button = ttk.Button(self.center_frame, text="Обновить", command=self.refresh)
-
 
         self.rotate_x_plus_button = ttk.Button(self.button_frame, text="right", command=self.rotate_x_plus)
         self.rotate_x_plus_button.pack(side="right")
@@ -56,12 +53,10 @@ class Window:
         self.center_frame.pack()
         self.refresh_button.pack()
 
-
-
     def refresh(self):
         self.canvas.delete("all")
 
-        list_of_polygons = get_polygons(
+        renderer = Renderer(
             data_handler=self.data_handler,
             fov=self.fov,
             aspect_ratio=self.aspect_ratio,
@@ -69,18 +64,13 @@ class Window:
             screen_height=self.screen_height,
             camera_angle=self.camera_angle
         )
+
+        list_of_polygons = renderer.render_polygons()
 
         for polygon in list_of_polygons:
             self.canvas.create_polygon(polygon.to_tuple(), fill=polygon.color)
 
-        list_of_lines = get_lines(
-            data_handler=self.data_handler,
-            fov=self.fov,
-            aspect_ratio=self.aspect_ratio,
-            camera_position=self.camera_position,
-            screen_height=self.screen_height,
-            camera_angle=self.camera_angle
-        )
+        list_of_lines = renderer.render_lines()
 
         for line in list_of_lines:
             self.canvas.create_line(line.to_tuple(), fill=line.color)
@@ -99,19 +89,14 @@ class Window:
 
     # TODO fix rotation quaternion
     def rotate_y_plus(self):
-        axis = Vector(1, 0, 0)
-        axis = rotate_vector_by_quaternion(axis, self.camera_angle)
-        print(axis)
-        rotation = Quaternion.from_euler(math.radians(10), axis)
+        # print(axis)
+        rotation = Quaternion.from_euler(math.radians(10), (1, 0, 0))
         self.camera_angle *= rotation
         # self.camera_position = rotate_vector_by_quaternion(self.camera_position, rotation)
         self.refresh()
 
     def rotate_y_minus(self):
-        axis = Vector(-1, 0, 0)
-        axis = rotate_vector_by_quaternion(axis, self.camera_angle)
-        print(axis)
-        rotation = Quaternion.from_euler(math.radians(10), axis)
+        rotation = Quaternion.from_euler(math.radians(10), (-1, 0, 0))
         self.camera_angle *= rotation
         # self.camera_position = rotate_vector_by_quaternion(self.camera_position, rotation)
         self.refresh()

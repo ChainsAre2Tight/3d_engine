@@ -4,9 +4,79 @@ import internals.handlers
 import math
 
 
-def convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, aspect_ratio: float,
-                         camera_position: internals.vectors.Vector,
-                         screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
+class Renderer:
+    data_handler: internals.handlers.DataHandler
+    fov: float | int
+    aspect_ratio: float
+    camera_position: internals.vectors.Vector
+    screen_height: int
+    camera_angle: internals.vectors.Quaternion
+
+    def __init__(self,
+                 data_handler: internals.handlers.DataHandler,
+                 fov: float | int,
+                 aspect_ratio: float,
+                 camera_position: internals.vectors.Vector,
+                 screen_height: int,
+                 camera_angle: internals.vectors.Quaternion
+                 ):
+        self.data_handler = data_handler
+        self.fov = fov
+        self.aspect_ratio = aspect_ratio
+        self.camera_position = camera_position
+        self.screen_height = screen_height
+        self.camera_angle = camera_angle
+
+    def render_polygons(self) -> list[internals.objects.CanvasPolygon]:
+
+        list_of_polygons = self.data_handler.get_polygons()
+
+        list_of_canvas_polygons_unsorted = []
+
+        for polygon in list_of_polygons:
+            canvas_polygon, depth = _convert_polygon_to_2d(
+                polygon=polygon,
+                fov=self.fov,
+                aspect_ratio=self.aspect_ratio,
+                camera_position=self.camera_position,
+                screen_height=self.screen_height,
+                camera_angle=self.camera_angle
+            )
+            list_of_canvas_polygons_unsorted.append((canvas_polygon, depth))
+
+        list_of_canvas_polygons_unsorted.sort(key=lambda x: -x[1])
+
+        list_of_canvas_polygons = list(map(lambda x: x[0], list_of_canvas_polygons_unsorted))
+
+        return list_of_canvas_polygons
+
+    def render_lines(self) -> list[internals.objects.CanvasLine]:
+
+        list_of_lines = self.data_handler.get_lines()
+
+        list_of_canvas_lines_unsorted = []
+
+        for line in list_of_lines:
+            canvas_line, depth = _convert_line_to_2d(
+                line=line,
+                fov=self.fov,
+                aspect_ratio=self.aspect_ratio,
+                camera_position=self.camera_position,
+                screen_height=self.screen_height,
+                camera_angle=self.camera_angle
+            )
+            list_of_canvas_lines_unsorted.append((canvas_line, depth))
+
+        list_of_canvas_lines_unsorted.sort(key=lambda x: x[1])
+
+        list_of_canvas_lines = list(map(lambda x: x[0], list_of_canvas_lines_unsorted))
+
+        return list_of_canvas_lines
+
+
+def _convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, aspect_ratio: float,
+                          camera_position: internals.vectors.Vector,
+                          screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
     internals.objects.Point2D, float]:
     tan_fy = round(math.tan(fov / 2), 4)
 
@@ -28,15 +98,15 @@ def convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, asp
     return internals.objects.Point2D(res_x, res_y), depth
 
 
-def convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int, aspect_ratio: float,
-                          camera_position: internals.vectors.Vector,
-                          screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
+def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int, aspect_ratio: float,
+                           camera_position: internals.vectors.Vector,
+                           screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
     internals.objects.CanvasPolygon, float]:
     average_depth = 0
     resulting_vertices = []
 
     for vertex in polygon.vertices:
-        point, depth = convert_vertex_to_2d(
+        point, depth = _convert_vertex_to_2d(
             vertex=vertex,
             fov=fov,
             aspect_ratio=aspect_ratio,
@@ -51,15 +121,15 @@ def convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int, 
     return internals.objects.CanvasPolygon(*resulting_vertices, color=polygon.color), average_depth
 
 
-def convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_ratio: float,
-                       camera_position: internals.vectors.Vector,
-                       screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
+def _convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_ratio: float,
+                        camera_position: internals.vectors.Vector,
+                        screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
     internals.objects.CanvasLine, float]:
     average_depth = 0
     resulting_vertices = []
 
     for vertex in line.vertices:
-        point, depth = convert_vertex_to_2d(
+        point, depth = _convert_vertex_to_2d(
             vertex=vertex,
             fov=fov,
             aspect_ratio=aspect_ratio,
@@ -72,57 +142,3 @@ def convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_ra
 
     average_depth = round(average_depth / 2, 4)
     return internals.objects.CanvasLine(*resulting_vertices, color=line.color), average_depth
-
-
-def get_polygons(data_handler: internals.handlers.DataHandler,
-        fov: float | int, aspect_ratio: float, camera_position: internals.vectors.Vector,
-        screen_height: int, camera_angle: internals.vectors.Quaternion
-) -> list[internals.objects.CanvasPolygon]:
-
-    list_of_polygons = data_handler.get_polygons()
-
-    list_of_canvas_polygons_unsorted = []
-
-    for polygon in list_of_polygons:
-        canvas_polygon, depth = convert_polygon_to_2d(
-            polygon=polygon,
-            fov=fov,
-            aspect_ratio=aspect_ratio,
-            camera_position=camera_position,
-            screen_height=screen_height,
-            camera_angle=camera_angle
-        )
-        list_of_canvas_polygons_unsorted.append((canvas_polygon, depth))
-
-    list_of_canvas_polygons_unsorted.sort(key=lambda x: -x[1])
-
-    list_of_canvas_polygons = list(map(lambda x: x[0], list_of_canvas_polygons_unsorted))
-
-    return list_of_canvas_polygons
-
-
-def get_lines(data_handler: internals.handlers.DataHandler,
-        fov: float | int, aspect_ratio: float, camera_position: internals.vectors.Vector,
-              screen_height: int, camera_angle: internals.vectors.Quaternion
-              ) -> list[internals.objects.CanvasLine]:
-
-    list_of_lines = data_handler.get_lines()
-
-    list_of_canvas_lines_unsorted = []
-
-    for line in list_of_lines:
-        canvas_line, depth = convert_line_to_2d(
-            line=line,
-            fov=fov,
-            aspect_ratio=aspect_ratio,
-            camera_position=camera_position,
-            screen_height=screen_height,
-            camera_angle=camera_angle
-        )
-        list_of_canvas_lines_unsorted.append((canvas_line, depth))
-
-    list_of_canvas_lines_unsorted.sort(key=lambda x: x[1])
-
-    list_of_canvas_lines = list(map(lambda x: x[0], list_of_canvas_lines_unsorted))
-
-    return list_of_canvas_lines
