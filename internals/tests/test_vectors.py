@@ -1,5 +1,5 @@
 import unittest
-from internals.quaternions import Vector, Quaternion, rotate_vector_by_quaternion
+from internals.vectors import Vector, Quaternion, rotate_vector_by_quaternion
 from math import pi
 
 
@@ -89,6 +89,8 @@ class TestVectorRotation(unittest.TestCase):
         )
 
         self.assertEqual("(1.0, 0.0, 0.0)", str(resulting_vector))
+
+    # TODO make sure quaternion rotation works as intended as there are strange behaviours observed when rotating along non-X axis
 
 
 if __name__ == '__main__':

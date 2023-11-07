@@ -1,7 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 from internals.render import get_polygons, get_lines
-from internals.quaternions import Vector, Quaternion, rotate_vector_by_quaternion
+from internals.vectors import Vector, Quaternion, rotate_vector_by_quaternion
+import internals.handlers
 import math
 
 
@@ -13,11 +14,20 @@ class Window:
     camera_angle = Quaternion.from_euler(0, (0, 1, 0, 0))
 
     def __init__(self):
+
+        # setup window
         self.root = Tk()
         self.root.title("Вывод")
         self.root.resizable(False, False)
         self.root.geometry(f'{int(self.screen_height * self.aspect_ratio)}x{self.screen_height + 100}')
 
+        # initialize handlers
+        self.data_handler = internals.handlers.DataHandler()
+        # TODO read real file name
+        self.data_handler.read_file(file_name="AXAXAXAXA ti lox")
+
+
+        # initialize and place widgets
         self.canvas = Canvas(self.root, width=int(self.aspect_ratio * self.screen_height), height=self.screen_height,
                              bg='white')
         self.canvas.pack()
@@ -52,6 +62,7 @@ class Window:
         self.canvas.delete("all")
 
         list_of_polygons = get_polygons(
+            data_handler=self.data_handler,
             fov=self.fov,
             aspect_ratio=self.aspect_ratio,
             camera_position=self.camera_position,
@@ -63,6 +74,7 @@ class Window:
             self.canvas.create_polygon(polygon.to_tuple(), fill=polygon.color)
 
         list_of_lines = get_lines(
+            data_handler=self.data_handler,
             fov=self.fov,
             aspect_ratio=self.aspect_ratio,
             camera_position=self.camera_position,
