@@ -40,9 +40,13 @@ class Renderer:
                 aspect_ratio=self.aspect_ratio,
                 camera_position=self.camera_position,
                 screen_height=self.screen_height,
-                camera_angle=self.camera_angle
+                camera_angle=self.camera_angle,
+                depth_interpolation_method="average",
             )
             list_of_canvas_polygons_unsorted.append((canvas_polygon, depth))
+
+        # TODO sort out polygons whose normals are more than 90 degrees from camera
+
 
         list_of_canvas_polygons_unsorted.sort(key=lambda x: -x[1])
 
@@ -100,9 +104,10 @@ def _convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, as
 
 def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int, aspect_ratio: float,
                            camera_position: internals.vectors.Vector,
-                           screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
-    internals.objects.CanvasPolygon, float]:
-    average_depth = 0
+                           screen_height: int, camera_angle: internals.vectors.Quaternion,
+                           depth_interpolation_method: str
+                           ) -> tuple[internals.objects.CanvasPolygon, float]:
+    depthes = []
     resulting_vertices = []
 
     for vertex in polygon.vertices:
@@ -114,11 +119,19 @@ def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int,
             screen_height=screen_height,
             camera_angle=camera_angle
         )
-        average_depth += depth
+        depthes.append(depth)
         resulting_vertices.append(point)
 
-    average_depth = round(average_depth / 3, 4)
-    return internals.objects.CanvasPolygon(*resulting_vertices, color=polygon.color), average_depth
+    resulting_depth: float
+    if depth_interpolation_method == "average":
+        resulting_depth = round(sum(depthes) / 3, 4)
+    elif depth_interpolation_method == "nearest":
+        resulting_depth = min(depthes)
+    elif depth_interpolation_method == "furthest":
+        resulting_depth = max(depthes)
+    else:
+        raise KeyError("Unknown interpolation method")
+    return internals.objects.CanvasPolygon(*resulting_vertices, color=polygon.color), resulting_depth
 
 
 def _convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_ratio: float,

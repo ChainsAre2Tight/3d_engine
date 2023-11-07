@@ -79,6 +79,8 @@ class Polygon(Line):
     def vertices(self):
         return self.first, self.second, self.third
 
+    # TODO calculate normals (so they face out from (0, 0, 0))
+
 
 class Quad(Polygon):
     def __init__(self, first: Vertex, second: Vertex, third: Vertex, fourth: Vertex, color: str):
