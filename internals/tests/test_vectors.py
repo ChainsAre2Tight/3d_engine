@@ -1,6 +1,7 @@
 import unittest
 from internals.vectors import Vector, Quaternion, rotate_vector_by_quaternion
 from math import pi
+import math
 
 
 class TestVectors(unittest.TestCase):
@@ -95,6 +96,20 @@ class TestQuaternionCreation(unittest.TestCase):
         q = Quaternion.from_euler(-32, (5, 2, 8))
         self.assertEqual((0.1493, 0.0597, 0.2388, -0.9577), q.to_tuple())
 
+class TestQuaternionMultiplication(unittest.TestCase):
+
+    def test_1(self):
+        q1 = Quaternion(1, 1, -2, 3)
+        q2 = Quaternion(-4, 2, -5, 1)
+        q3 = q1 * q2
+        self.assertEqual((-19, 11, 8, -12), q3.to_tuple())
+
+    def test_2(self):
+        q1 = Quaternion(-10, 9, -8, 7)
+        q2 = Quaternion(-6, 5, -4, 3)
+        q3 = q1 * q2
+        self.assertEqual((-38, -100, 96, -68), q3.to_tuple())
+
 
 class TestVectorRotation(unittest.TestCase):
     def test_1(self):
@@ -111,6 +126,13 @@ class TestVectorRotation(unittest.TestCase):
         )
 
         self.assertEqual("(1.0, 0.0, 0.0)", str(resulting_vector))
+
+    def test_2(self):
+        vector = Vector(1, 0, 0)
+        quaternion = Quaternion(w=0.944, x=0.269, y=0.145, z=0.128)
+        self.assertEqual((0.9252, -0.1635, 0.3423), rotate_vector_by_quaternion(vector, quaternion).to_tuple())
+
+
 
     # TODO make sure quaternion rotation works as intended as there are strange behaviours observed when rotating along non-X axis
 

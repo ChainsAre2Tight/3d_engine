@@ -7,11 +7,13 @@ import math
 
 
 class Window:
-    fov = math.pi / 5
+    fov = math.pi / 2
     aspect_ratio = 1
-    camera_position = Vector(0, 0, -10)
+    camera_position = Vector(0, 0, -5)
     screen_height = 800
-    camera_angle = Quaternion.from_euler(0, (0, 1, 0, 0))
+    camera_angle = Quaternion.from_euler(0, (0, 1, 0))
+    move_magnitude = 0.5
+    rotate_magnitude = math.radians(10)
 
     def __init__(self):
 
@@ -23,35 +25,56 @@ class Window:
 
         # initialize handlers
         self.data_handler = internals.handlers.DataHandler()
-        # TODO read real file name
-        self.data_handler.read_file(file_path="../data", file_name="cube.obj")
+        self.data_handler.read_file(file_path="../data", file_name="triangulated_cube.obj")
 
         # initialize and place widgets
         self.canvas = Canvas(self.root, width=int(self.aspect_ratio * self.screen_height), height=self.screen_height,
                              bg='white')
         self.canvas.pack()
 
-        self.button_frame = Frame(self.root)
-        self.button_frame.pack()
-
-        self.center_frame = Frame(self.button_frame)
-
-        self.refresh_button = ttk.Button(self.center_frame, text="Обновить", command=self.refresh)
-
-        self.rotate_x_plus_button = ttk.Button(self.button_frame, text="right", command=self.rotate_x_plus)
-        self.rotate_x_plus_button.pack(side="right")
-
-        self.rotate_x_minus_button = ttk.Button(self.button_frame, text="left", command=self.rotate_x_minus)
+        self.rotate_button_frame = Frame(self.root)
+        self.rotate_button_frame.pack(side="left")
+        self.rotate_center_frame = Frame(self.rotate_button_frame)
+        self.rotate_right_frame = Frame(self.rotate_button_frame)
+        self.refresh_button = ttk.Button(self.rotate_center_frame, text="Обновить", command=self.refresh)
+        self.rotate_x_plus_button = ttk.Button(self.rotate_right_frame, text="+y", command=self.rotate_y_plus)
+        self.rotate_x_minus_button = ttk.Button(self.rotate_button_frame, text="-y", command=self.rotate_y_minus)
         self.rotate_x_minus_button.pack(side="left")
-
-        self.rotate_y_minus_button = ttk.Button(self.center_frame, text="up", command=self.rotate_y_plus)
+        self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="+x", command=self.rotate_x_plus)
         self.rotate_y_minus_button.pack(side="top")
-
-        self.rotate_y_minus_button = ttk.Button(self.center_frame, text="down", command=self.rotate_y_minus)
+        self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="-x", command=self.rotate_x_minus)
         self.rotate_y_minus_button.pack(side="bottom")
-
-        self.center_frame.pack()
+        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="+z", command=self.rotate_z_plus)
+        self.rotate_z_minus_button.pack(side="top")
+        self.rotate_x_plus_button.pack(side="top")
+        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="-z", command=self.rotate_z_minus)
+        self.rotate_z_minus_button.pack(side="bottom")
+        self.rotate_right_frame.pack(side="right")
+        self.rotate_center_frame.pack()
         self.refresh_button.pack()
+
+        self.move_button_frame = Frame(self.root)
+        self.move_button_frame.pack(side="right")
+        self.move_center_frame = Frame(self.move_button_frame)
+        self.move_right_frame = Frame(self.move_button_frame)
+        self.lox_button = ttk.Button(self.move_center_frame, text="", command="")
+        self.move_x_plus_button = ttk.Button(self.move_right_frame, text="+y", command=self.move_y_plus)
+        self.move_x_minus_button = ttk.Button(self.move_button_frame, text="-y", command=self.move_y_minus)
+        self.move_x_minus_button.pack(side="left")
+        self.move_y_plus_button = ttk.Button(self.move_center_frame, text="+x", command=self.move_x_plus)
+        self.move_y_plus_button.pack(side="top")
+        self.move_y_minus_button = ttk.Button(self.move_center_frame, text="-x", command=self.move_x_minus)
+        self.move_y_minus_button.pack(side="bottom")
+        self.move_z_minus_button = ttk.Button(self.move_right_frame, text="+z", command=self.move_z_plus)
+        self.move_z_minus_button.pack(side="top")
+        self.move_x_plus_button.pack(side="top")
+        self.move_z_minus_button = ttk.Button(self.move_right_frame, text="-z", command=self.move_z_minus)
+        self.move_z_minus_button.pack(side="bottom")
+        self.move_right_frame.pack(side="right")
+        self.move_center_frame.pack()
+        self.lox_button.pack()
+
+        self.refresh()
 
     def refresh(self):
         self.canvas.delete("all")
@@ -73,32 +96,57 @@ class Window:
         list_of_lines = renderer.render_lines()
 
         for line in list_of_lines:
-            self.canvas.create_line(line.to_tuple(), fill=line.color)
+            self.canvas.create_line(line.to_tuple(), fill=line.color, width=2)
 
-    def rotate_x_plus(self):
-        rotation = Quaternion.from_euler(math.radians(10), (0, 1, 0))
-        self.camera_angle *= rotation
-        # self.camera_position = rotate_vector_by_quaternion(self.camera_position, rotation)
-        self.refresh()
-
-    def rotate_x_minus(self):
-        rotation = Quaternion.from_euler(math.radians(10), (0, -1, 0))
-        self.camera_angle *= rotation
-        # self.camera_position = rotate_vector_by_quaternion(self.camera_position, rotation)
-        self.refresh()
-
-    # TODO fix rotation quaternion
     def rotate_y_plus(self):
-        # print(axis)
-        rotation = Quaternion.from_euler(math.radians(10), (1, 0, 0))
-        self.camera_angle *= rotation
-        # self.camera_position = rotate_vector_by_quaternion(self.camera_position, rotation)
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, -1, 0)) * self.camera_angle
         self.refresh()
 
     def rotate_y_minus(self):
-        rotation = Quaternion.from_euler(math.radians(10), (-1, 0, 0))
-        self.camera_angle *= rotation
-        # self.camera_position = rotate_vector_by_quaternion(self.camera_position, rotation)
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 1, 0)) * self.camera_angle
+        self.refresh()
+
+    def rotate_x_plus(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (-1, 0, 0)) * self.camera_angle
+        self.refresh()
+
+    def rotate_x_minus(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (1, 0, 0)) * self.camera_angle
+        self.refresh()
+
+    def rotate_z_plus(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 0, -1)) * self.camera_angle
+        self.refresh()
+
+    def rotate_z_minus(self):
+        self.camera_angle = Quaternion.from_euler(math.radians(5), (0, 0, 1)) * self.camera_angle
+        self.refresh()
+
+    # TODO fix buttons
+    def move_x_plus(self):
+        self.camera_position.x += self.move_magnitude
+        self.refresh()
+
+    def move_x_minus(self):
+        self.camera_position.x -= self.move_magnitude
+        self.refresh()
+
+    def move_y_plus(self):
+        self.camera_position.y += self.move_magnitude
+        self.refresh()
+
+    def move_y_minus(self):
+        self.camera_position.y -= self.move_magnitude
+        self.refresh()
+
+    def move_z_plus(self):
+        # TODO make all move buttons behave like this
+        self.camera_position += internals.vectors.rotate_vector_by_quaternion(
+            internals.vectors.Vector(0, 0, 1) * self.move_magnitude, self.camera_angle.invert())
+        self.refresh()
+
+    def move_z_minus(self):
+        self.camera_position.z -= self.move_magnitude
         self.refresh()
 
 

@@ -71,20 +71,23 @@ class Line:
 
 
 class Polygon(Line):
-    def __init__(self, first: Vertex, second: Vertex, third: Vertex, color: str):
+    third: Vertex
+    normal: internals.vectors.Vector
+
+    def __init__(self, first: Vertex, second: Vertex, third: Vertex, color: str, normal: internals.vectors.Vector):
         super().__init__(first, second, color)
         self.third = third
+        self.normal = normal
 
     @property
     def vertices(self):
         return self.first, self.second, self.third
 
-    # TODO calculate normals (so they face out from (0, 0, 0))
-
 
 class Quad(Polygon):
-    def __init__(self, first: Vertex, second: Vertex, third: Vertex, fourth: Vertex, color: str):
-        super().__init__(first, second, third, color)
+    def __init__(self, first: Vertex, second: Vertex, third: Vertex, fourth: Vertex, color: str,
+                 normal: internals.vectors.Vector):
+        super().__init__(first, second, third, color, normal)
         self.fourth = fourth
 
     @property
@@ -96,12 +99,12 @@ class Quad(Polygon):
             first=self.first,
             second=self.second,
             third=self.third,
-            color=self.color
+            color=self.color,
+            normal=self.normal
         ), Polygon(
             first=self.first,
             second=self.third,
             third=self.fourth,
-            color=self.color
+            color=self.color,
+            normal=self.normal
         )
-
-

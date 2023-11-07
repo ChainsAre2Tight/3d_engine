@@ -34,19 +34,21 @@ class Renderer:
         list_of_canvas_polygons_unsorted = []
 
         for polygon in list_of_polygons:
-            canvas_polygon, depth = _convert_polygon_to_2d(
-                polygon=polygon,
-                fov=self.fov,
-                aspect_ratio=self.aspect_ratio,
-                camera_position=self.camera_position,
-                screen_height=self.screen_height,
-                camera_angle=self.camera_angle,
-                depth_interpolation_method="average",
-            )
+            try:
+                canvas_polygon, depth = _convert_polygon_to_2d(
+                    polygon=polygon,
+                    fov=self.fov,
+                    aspect_ratio=self.aspect_ratio,
+                    camera_position=self.camera_position,
+                    screen_height=self.screen_height,
+                    camera_angle=self.camera_angle,
+                    depth_interpolation_method="average",
+                )
+            except FrustrumCullingException:
+                continue
+            except NormalCullingException:
+                continue
             list_of_canvas_polygons_unsorted.append((canvas_polygon, depth))
-
-        # TODO sort out polygons whose normals are more than 90 degrees from camera
-
 
         list_of_canvas_polygons_unsorted.sort(key=lambda x: -x[1])
 
@@ -61,14 +63,17 @@ class Renderer:
         list_of_canvas_lines_unsorted = []
 
         for line in list_of_lines:
-            canvas_line, depth = _convert_line_to_2d(
-                line=line,
-                fov=self.fov,
-                aspect_ratio=self.aspect_ratio,
-                camera_position=self.camera_position,
-                screen_height=self.screen_height,
-                camera_angle=self.camera_angle
-            )
+            try:
+                canvas_line, depth = _convert_line_to_2d(
+                    line=line,
+                    fov=self.fov,
+                    aspect_ratio=self.aspect_ratio,
+                    camera_position=self.camera_position,
+                    screen_height=self.screen_height,
+                    camera_angle=self.camera_angle
+                )
+            except FrustrumCullingException:
+                continue
             list_of_canvas_lines_unsorted.append((canvas_line, depth))
 
         list_of_canvas_lines_unsorted.sort(key=lambda x: x[1])
@@ -78,24 +83,41 @@ class Renderer:
         return list_of_canvas_lines
 
 
+class FrustrumCullingException(Exception):
+    pass
+
+
+class NormalCullingException(Exception):
+    pass
+
+
 def _convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, aspect_ratio: float,
                           camera_position: internals.vectors.Vector,
-                          screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
-    internals.objects.Point2D, float]:
-    tan_fy = round(math.tan(fov / 2), 4)
+                          screen_height: int, camera_angle: internals.vectors.Quaternion) \
+        -> tuple[internals.objects.Point2D, float]:
+    # TODO calculate it once and pass as argument
+    tan_fy = math.tan(fov / 2)
 
-    position = internals.vectors.Vector(*vertex.to_tuple())
+    position = internals.vectors.Vector(*vertex.to_tuple()) - camera_position
 
     rotated_position = internals.vectors.rotate_vector_by_quaternion(position, camera_angle)
 
-    res_y = (rotated_position.y * screen_height / (
-            2 * (camera_position.length + rotated_position.z) * tan_fy)) + screen_height // 2
-    res_x = (rotated_position.x * screen_height / (
-            2 * aspect_ratio * (
-            camera_position.length + rotated_position.z) * tan_fy)) + screen_height * aspect_ratio // 2
-    depth = round(
-        (rotated_position.x ** 2 + rotated_position.y ** 2 + (camera_position.length + rotated_position.z) ** 2) ** 0.5,
-        4)
+    d_min = 0.1
+    if rotated_position.z < d_min:
+        raise FrustrumCullingException
+
+    res_y = int(rotated_position.y * screen_height / (
+            2 * rotated_position.z * tan_fy)) + screen_height // 2
+    res_x = int(rotated_position.x * screen_height / (
+            2 * aspect_ratio * rotated_position.z * tan_fy)) + screen_height * aspect_ratio // 2
+
+    depth = rotated_position.length
+
+    # print(f"""Rotated vertex X
+    # {position.x} -> {rotated_position.x}
+    # {position.y} -> {rotated_position.y}
+    # {position.z} -> {rotated_position.z}
+    # length: {position.length}""")
 
     # print(f'Vertex {vertex.to_tuple()} -> point ({res_x}, {res_y}) with depth {depth}')
 
@@ -107,20 +129,33 @@ def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int,
                            screen_height: int, camera_angle: internals.vectors.Quaternion,
                            depth_interpolation_method: str
                            ) -> tuple[internals.objects.CanvasPolygon, float]:
-    depthes = []
+    depthes = [0]
     resulting_vertices = []
 
-    for vertex in polygon.vertices:
-        point, depth = _convert_vertex_to_2d(
-            vertex=vertex,
-            fov=fov,
-            aspect_ratio=aspect_ratio,
-            camera_position=camera_position,
-            screen_height=screen_height,
-            camera_angle=camera_angle
-        )
-        depthes.append(depth)
-        resulting_vertices.append(point)
+    try:
+        flag = False
+
+        for vertex in polygon.vertices:
+
+            position = internals.vectors.Vector(*vertex.to_tuple()) - camera_position
+            if position.dot_product(polygon.normal) < 0:
+                flag = True
+            point, depth = _convert_vertex_to_2d(
+                vertex=vertex,
+                fov=fov,
+                aspect_ratio=aspect_ratio,
+                camera_position=camera_position,
+                screen_height=screen_height,
+                camera_angle=camera_angle,
+            )
+            depthes.append(depth)
+            resulting_vertices.append(point)
+        if not flag:
+            raise NormalCullingException
+    except FrustrumCullingException:
+        raise FrustrumCullingException
+    except NormalCullingException:
+        raise NormalCullingException
 
     resulting_depth: float
     if depth_interpolation_method == "average":
@@ -140,18 +175,20 @@ def _convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_r
     internals.objects.CanvasLine, float]:
     average_depth = 0
     resulting_vertices = []
-
-    for vertex in line.vertices:
-        point, depth = _convert_vertex_to_2d(
-            vertex=vertex,
-            fov=fov,
-            aspect_ratio=aspect_ratio,
-            camera_position=camera_position,
-            screen_height=screen_height,
-            camera_angle=camera_angle
-        )
-        average_depth += depth
-        resulting_vertices.append(point)
+    try:
+        for vertex in line.vertices:
+            point, depth = _convert_vertex_to_2d(
+                vertex=vertex,
+                fov=fov,
+                aspect_ratio=aspect_ratio,
+                camera_position=camera_position,
+                screen_height=screen_height,
+                camera_angle=camera_angle
+            )
+            average_depth += depth
+            resulting_vertices.append(point)
+    except FrustrumCullingException:
+        raise FrustrumCullingException
 
     average_depth = round(average_depth / 2, 4)
     return internals.objects.CanvasLine(*resulting_vertices, color=line.color), average_depth

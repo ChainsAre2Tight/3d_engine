@@ -21,6 +21,12 @@ class Vector:
     def length(self) -> float:
         return (self.x ** 2 + self.y ** 2 + self.z ** 2) ** 0.5
 
+    def dot_product(self, other) -> float:
+        if type(other) == Vector:
+            return self.x * other.x + self.y * other.y + self.z * other.z
+        else:
+            raise TypeError(f'Unsupported dot product operation for Vector and {type(other)}')
+
     def __add__(self, other):
         if type(other) != Vector:
             raise TypeError
@@ -30,12 +36,24 @@ class Vector:
             z=self.z + other.z
         )
 
+    def __sub__(self, other):
+        if type(other) != Vector:
+            raise TypeError
+        return Vector(
+            x=self.x - other.x,
+            y=self.y - other.y,
+            z=self.z - other.z
+        )
+
     def __mul__(self, other):
         if type(other) == Vector:
             raise NotImplementedError
-        # TODO make this work for calculating normals
         if type(other) == int or type(other) == float:
-            raise NotImplementedError
+            return Vector(
+                x=round(self.x * other, 4),
+                y=round(self.y * other, 4),
+                z=round(self.z * other, 4)
+            )
         else:
             raise TypeError
 
@@ -95,13 +113,16 @@ class Quaternion(Vector):
     def __add__(self, other):
         raise TypeError
 
+    def __sub__(self, other):
+        raise TypeError
+
     def __mul__(self, other):
         if type(other) == int | float:
             return Quaternion(
-                w=round(self.w / other, 4),
-                x=round(self.x / other, 4),
-                y=round(self.y / other, 4),
-                z=round(self.z / other, 4)
+                w=round(self.w * other, 4),
+                x=round(self.x * other, 4),
+                y=round(self.y * other, 4),
+                z=round(self.z * other, 4)
             )
         elif type(other) == Quaternion:
             return Quaternion(
@@ -123,6 +144,9 @@ class Quaternion(Vector):
     def to_tuple(self):
         return self.w, self.x, self.y, self.z
 
+    def dot_product(self, other):
+        raise NotImplementedError
+
 
 def rotate_vector_by_quaternion(vector: Vector, quaternion: Quaternion) -> Vector:
     resulting_vector = quaternion * vector
@@ -133,6 +157,12 @@ def rotate_vector_by_quaternion(vector: Vector, quaternion: Quaternion) -> Vecto
         y=resulting_vector.y,
         z=resulting_vector.z,
     )
+
+
+
+
+def calculate_angle(v1: Vector, v2: Vector) -> float:
+    return math.acos(v1.dot_product(v2) / (v1.length * v2.length))
 
 
 if __name__ == "__main__":

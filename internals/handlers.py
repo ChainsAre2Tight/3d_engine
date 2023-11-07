@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import internals.objects
+import internals.vectors
 import random
 
 
@@ -57,7 +58,8 @@ class FileHandler(_AbstractHandler):
                 if data in res.keys():
                     raise NameError(f"Two objects have the same name {data} in .OBJ file {self._file_name}")
                 else:
-                    res[data] = {"polygons": list(), "vertices": list(), "smooth_shading": 0}
+                    # TODO replace with dataclass
+                    res[data] = {"polygons": list(), "vertices": list(), "smooth_shading": 0, "normals": list()}
             elif prefix == "v":
                 v1, v2, v3 = list(map(float, data.split()))
                 res[current_object]["vertices"].append(
@@ -65,15 +67,31 @@ class FileHandler(_AbstractHandler):
                 )
             elif prefix == "s":
                 res[current_object]["smooth_shading"] = int(data)
+            elif prefix == "vn":
+                res[current_object]["normals"].append(internals.vectors.Vector(*list(map(float, data.split()))))
             elif prefix == "f":
-                indexes = list(map(lambda x: int(x) - 1, data.split()))
+                indexes = data.split()
+
+                for i in range(len(indexes)):
+                    smol_data = indexes[i].split("/")
+                    if len(smol_data) == 1:
+                        indexes[i] = smol_data[0]
+                    else:
+                        index = int(smol_data[0]) - 1
+                        material = smol_data[1]
+                        normal = int(smol_data[2]) - 1
+                        indexes[i] = index
+                polygon_normal = res[current_object]["normals"][normal]
+
                 if len(indexes) == 3:
+                    # print(indexes)
                     res[current_object]["polygons"].append(
                         internals.objects.Polygon(
                             first=res[current_object]["vertices"][indexes[0]],
                             second=res[current_object]["vertices"][indexes[1]],
                             third=res[current_object]["vertices"][indexes[2]],
-                            color=random_color()
+                            color=random_color(),
+                            normal=polygon_normal
                         )
                     )
                 elif len(indexes) == 4:
@@ -82,7 +100,8 @@ class FileHandler(_AbstractHandler):
                         second=res[current_object]["vertices"][indexes[1]],
                         third=res[current_object]["vertices"][indexes[2]],
                         fourth=res[current_object]["vertices"][indexes[3]],
-                        color=random_color()
+                        color=random_color(),
+                        normal=polygon_normal,
                     )
                     t1, t2 = quad.get_polygons()
                     t1.color = random_color()
@@ -97,6 +116,7 @@ class FileHandler(_AbstractHandler):
                     f'Got unexpected prefix "{prefix}" while reading {self._file_name} at line {line_number}')
 
         # return data
+        print(res)
         return res
 
 
@@ -109,36 +129,22 @@ class DataHandler(_AbstractHandler):
     def __init__(self):
         self._lines = [
             internals.objects.Line(
-                internals.objects.Vertex(-200, 0, 0),
-                internals.objects.Vertex(200, 0, 0),
+                internals.objects.Vertex(-2, 0, 0),
+                internals.objects.Vertex(2, 0, 0),
                 "blue"
             ),
             internals.objects.Line(
-                internals.objects.Vertex(0, -200, 0),
-                internals.objects.Vertex(0, 200, 0),
+                internals.objects.Vertex(0, -2, 0),
+                internals.objects.Vertex(0, 2, 0),
                 "red"
             ),
             internals.objects.Line(
-                internals.objects.Vertex(0, 0, -200),
-                internals.objects.Vertex(0, 0, 200),
+                internals.objects.Vertex(0, 0, -2),
+                internals.objects.Vertex(0, 0, 2),
                 "green"
             ),
         ]
 
-        # self._polygons = [
-        #     internals.objects.Polygon(
-        #         internals.objects.Vertex(-50, -50, -10),
-        #         internals.objects.Vertex(-50, 50, -50),
-        #         internals.objects.Vertex(50, 50, -10),
-        #         "magenta"
-        #     ),
-        #     internals.objects.Polygon(
-        #         internals.objects.Vertex(-50, -50, 10),
-        #         internals.objects.Vertex(50, 50, 10),
-        #         internals.objects.Vertex(50, -50, 50),
-        #         "cyan"
-        #     )
-        # ]
         self._polygons = list()
 
     def read_file(self, file_path, file_name, *args, **kwargs):
