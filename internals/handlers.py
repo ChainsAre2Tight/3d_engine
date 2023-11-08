@@ -1,27 +1,11 @@
 from abc import ABC, abstractmethod
 import internals.objects
 import internals.vectors
-import random
+import internals.rgb
 
 
 class _AbstractHandler(ABC):
     pass
-
-
-def random_color(exclude: str = '') -> str:
-    colors = [
-        "black",
-        # "white",
-        "red",
-        "green",
-        "blue",
-        "cyan",
-        "yellow",
-        "magenta",
-    ]
-    if exclude != "":
-        colors.remove(exclude)
-    return random.choice(colors)
 
 
 class FileHandler(_AbstractHandler):
@@ -90,7 +74,7 @@ class FileHandler(_AbstractHandler):
                             first=res[current_object]["vertices"][indexes[0]],
                             second=res[current_object]["vertices"][indexes[1]],
                             third=res[current_object]["vertices"][indexes[2]],
-                            color=random_color(),
+                            color=internals.rgb.light_gray_color(),
                             normal=polygon_normal
                         )
                     )
@@ -100,12 +84,12 @@ class FileHandler(_AbstractHandler):
                         second=res[current_object]["vertices"][indexes[1]],
                         third=res[current_object]["vertices"][indexes[2]],
                         fourth=res[current_object]["vertices"][indexes[3]],
-                        color=random_color(),
+                        color=internals.rgb.light_gray_color(),
                         normal=polygon_normal,
                     )
                     t1, t2 = quad.get_polygons()
-                    t1.color = random_color()
-                    t2.color = random_color(t1.color)
+                    t1.color = internals.rgb.light_gray_color()
+                    t2.color = internals.rgb.light_gray_color()
 
                     res[current_object]["polygons"].append(t1)
                     res[current_object]["polygons"].append(t2)
@@ -116,7 +100,7 @@ class FileHandler(_AbstractHandler):
                     f'Got unexpected prefix "{prefix}" while reading {self._file_name} at line {line_number}')
 
         # return data
-        print(res)
+        # print(res)
         return res
 
 

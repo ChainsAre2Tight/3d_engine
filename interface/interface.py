@@ -1,9 +1,11 @@
+import math
 from tkinter import *
 from tkinter import ttk
-from internals.render import Renderer
-from internals.vectors import Vector, Quaternion, rotate_vector_by_quaternion
+
 import internals.handlers
-import math
+import internals.rgb
+from internals.render import Renderer
+from internals.vectors import Vector, Quaternion
 
 
 class Window:
@@ -14,6 +16,12 @@ class Window:
     camera_angle = Quaternion.from_euler(0, (0, 1, 0))
     move_magnitude = 0.5
     rotate_magnitude = math.radians(10)
+    scene_light = internals.rgb.Light(
+        intensity=1,
+        direction=internals.vectors.Vector(-1, -1, -1),
+        albedo=0.18,
+        color=internals.rgb.RGB(255, 255, 255)
+    )
 
     def __init__(self):
 
@@ -25,11 +33,11 @@ class Window:
 
         # initialize handlers
         self.data_handler = internals.handlers.DataHandler()
-        self.data_handler.read_file(file_path="../data", file_name="triangulated_cube.obj")
+        self.data_handler.read_file(file_path="../data", file_name="monkey.obj")
 
         # initialize and place widgets
         self.canvas = Canvas(self.root, width=int(self.aspect_ratio * self.screen_height), height=self.screen_height,
-                             bg='white')
+                             bg='#808080')
         self.canvas.pack()
 
         self.rotate_button_frame = Frame(self.root)
@@ -85,13 +93,14 @@ class Window:
             aspect_ratio=self.aspect_ratio,
             camera_position=self.camera_position,
             screen_height=self.screen_height,
-            camera_angle=self.camera_angle
+            camera_angle=self.camera_angle,
+            light=self.scene_light,
         )
 
         list_of_polygons = renderer.render_polygons()
 
         for polygon in list_of_polygons:
-            self.canvas.create_polygon(polygon.to_tuple(), fill=polygon.color)
+            self.canvas.create_polygon(polygon.to_tuple(), fill=polygon.color.to_hex())
 
         list_of_lines = renderer.render_lines()
 
