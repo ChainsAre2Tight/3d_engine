@@ -1,6 +1,7 @@
 import internals.vectors
 import internals.objects
 import internals.handlers
+import internals.rgb
 import math
 
 
@@ -11,6 +12,7 @@ class Renderer:
     camera_position: internals.vectors.Vector
     screen_height: int
     camera_angle: internals.vectors.Quaternion
+    light: internals.rgb.Light
 
     def __init__(self,
                  data_handler: internals.handlers.DataHandler,
@@ -18,7 +20,8 @@ class Renderer:
                  aspect_ratio: float,
                  camera_position: internals.vectors.Vector,
                  screen_height: int,
-                 camera_angle: internals.vectors.Quaternion
+                 camera_angle: internals.vectors.Quaternion,
+                 light: internals.rgb.Light,
                  ):
         self.data_handler = data_handler
         self.fov = fov
@@ -26,6 +29,7 @@ class Renderer:
         self.camera_position = camera_position
         self.screen_height = screen_height
         self.camera_angle = camera_angle
+        self.light = light
 
     def render_polygons(self) -> list[internals.objects.CanvasPolygon]:
 
@@ -43,6 +47,7 @@ class Renderer:
                     screen_height=self.screen_height,
                     camera_angle=self.camera_angle,
                     depth_interpolation_method="average",
+                    light=self.light,
                 )
             except FrustrumCullingException:
                 continue
@@ -127,10 +132,18 @@ def _convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, as
 def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int, aspect_ratio: float,
                            camera_position: internals.vectors.Vector,
                            screen_height: int, camera_angle: internals.vectors.Quaternion,
-                           depth_interpolation_method: str
+                           depth_interpolation_method: str,
+                           light: internals.rgb.Light
                            ) -> tuple[internals.objects.CanvasPolygon, float]:
     depthes = [0]
     resulting_vertices = []
+
+    # TODO make use of light.color
+    cosine = internals.vectors.get_cosine(polygon.normal, light.direction)
+    multiplier = light.intensity * light.albedo * cosine / math.pi
+    new_color: internals.rgb.RGB = polygon.color * multiplier
+
+    # print(f'Color {polygon.color.to_tuple()} * {multiplier} -> {new_color.to_tuple()}')
 
     try:
         flag = False
@@ -166,7 +179,7 @@ def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int,
         resulting_depth = max(depthes)
     else:
         raise KeyError("Unknown interpolation method")
-    return internals.objects.CanvasPolygon(*resulting_vertices, color=polygon.color), resulting_depth
+    return internals.objects.CanvasPolygon(*resulting_vertices, color=new_color), resulting_depth
 
 
 def _convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_ratio: float,
