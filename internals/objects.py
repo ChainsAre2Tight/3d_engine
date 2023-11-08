@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import internals.vectors
+import internals.rgb
 
 
 class Vertex(internals.vectors.Vector):
@@ -58,9 +59,9 @@ class CanvasPolygon(CanvasLine):
 class Line:
     first: Vertex
     second: Vertex
-    color: str
+    color: internals.rgb.RGB
 
-    def __init__(self, first: Vertex, second: Vertex, color: str):
+    def __init__(self, first: Vertex, second: Vertex, color: internals.rgb.RGB):
         self.first = first
         self.second = second
         self.color = color
@@ -74,7 +75,8 @@ class Polygon(Line):
     third: Vertex
     normal: internals.vectors.Vector
 
-    def __init__(self, first: Vertex, second: Vertex, third: Vertex, color: str, normal: internals.vectors.Vector):
+    def __init__(self, first: Vertex, second: Vertex, third: Vertex, color: internals.rgb.RGB,
+                 normal: internals.vectors.Vector):
         super().__init__(first, second, color)
         self.third = third
         self.normal = normal
@@ -85,7 +87,7 @@ class Polygon(Line):
 
 
 class Quad(Polygon):
-    def __init__(self, first: Vertex, second: Vertex, third: Vertex, fourth: Vertex, color: str,
+    def __init__(self, first: Vertex, second: Vertex, third: Vertex, fourth: Vertex, color: internals.rgb.RGB,
                  normal: internals.vectors.Vector):
         super().__init__(first, second, third, color, normal)
         self.fourth = fourth
