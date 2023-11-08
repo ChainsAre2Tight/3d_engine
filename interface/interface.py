@@ -58,17 +58,17 @@ class Window:
         self.move_center_frame = Frame(self.move_button_frame)
         self.move_right_frame = Frame(self.move_button_frame)
         self.lox_button = ttk.Button(self.move_center_frame, text="", command="")
-        self.move_x_plus_button = ttk.Button(self.move_right_frame, text="+y", command=self.move_y_plus)
-        self.move_x_minus_button = ttk.Button(self.move_button_frame, text="-y", command=self.move_y_minus)
+        self.move_x_plus_button = ttk.Button(self.move_right_frame, text="d", command=self.move_right)
+        self.move_x_minus_button = ttk.Button(self.move_button_frame, text="a", command=self.move_left)
         self.move_x_minus_button.pack(side="left")
-        self.move_y_plus_button = ttk.Button(self.move_center_frame, text="+x", command=self.move_x_plus)
+        self.move_y_plus_button = ttk.Button(self.move_center_frame, text="w", command=self.move_forward)
         self.move_y_plus_button.pack(side="top")
-        self.move_y_minus_button = ttk.Button(self.move_center_frame, text="-x", command=self.move_x_minus)
+        self.move_y_minus_button = ttk.Button(self.move_center_frame, text="s", command=self.move_backward)
         self.move_y_minus_button.pack(side="bottom")
-        self.move_z_minus_button = ttk.Button(self.move_right_frame, text="+z", command=self.move_z_plus)
+        self.move_z_minus_button = ttk.Button(self.move_right_frame, text="+z", command=self.move_up)
         self.move_z_minus_button.pack(side="top")
         self.move_x_plus_button.pack(side="top")
-        self.move_z_minus_button = ttk.Button(self.move_right_frame, text="-z", command=self.move_z_minus)
+        self.move_z_minus_button = ttk.Button(self.move_right_frame, text="-z", command=self.move_down)
         self.move_z_minus_button.pack(side="bottom")
         self.move_right_frame.pack(side="right")
         self.move_center_frame.pack()
@@ -122,31 +122,34 @@ class Window:
         self.camera_angle = Quaternion.from_euler(math.radians(5), (0, 0, 1)) * self.camera_angle
         self.refresh()
 
-    # TODO fix buttons
-    def move_x_plus(self):
-        self.camera_position.x += self.move_magnitude
+    def move_right(self):
+        self.camera_position += internals.vectors.rotate_vector_by_quaternion(
+            internals.vectors.Vector(1, 0, 0) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
-    def move_x_minus(self):
-        self.camera_position.x -= self.move_magnitude
+    def move_left(self):
+        self.camera_position += internals.vectors.rotate_vector_by_quaternion(
+            internals.vectors.Vector(-1, 0, 0) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
-    def move_y_plus(self):
-        self.camera_position.y += self.move_magnitude
+    def move_up(self):
+        self.camera_position += internals.vectors.rotate_vector_by_quaternion(
+            internals.vectors.Vector(0, -1, 0) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
-    def move_y_minus(self):
-        self.camera_position.y -= self.move_magnitude
+    def move_down(self):
+        self.camera_position += internals.vectors.rotate_vector_by_quaternion(
+            internals.vectors.Vector(0, 1, 0) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
-    def move_z_plus(self):
-        # TODO make all move buttons behave like this
+    def move_forward(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
             internals.vectors.Vector(0, 0, 1) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
-    def move_z_minus(self):
-        self.camera_position.z -= self.move_magnitude
+    def move_backward(self):
+        self.camera_position += internals.vectors.rotate_vector_by_quaternion(
+            internals.vectors.Vector(0, 0, -1) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
 
