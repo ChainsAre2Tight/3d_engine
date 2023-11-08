@@ -110,3 +110,20 @@ class Quad(Polygon):
             color=self.color,
             normal=self.normal
         )
+
+
+class Object:
+    name: str
+    smooth_shading: int
+    polygons: list
+    normals: list
+    vertices: list
+    color: internals.rgb.RGB
+
+    def __init__(self, name: str, color: internals.rgb.RGB):
+        self.name = name
+        self.smooth_shading = 0
+        self.polygons = list()
+        self.normals = list()
+        self.vertices = list()
+        self.color = color
