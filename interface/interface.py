@@ -1,6 +1,7 @@
 import math
 from tkinter import *
 from tkinter import ttk
+import time
 
 import internals.handlers
 import internals.rgb
@@ -89,6 +90,7 @@ class Window:
         self.refresh()
 
     def refresh(self):
+        start_time = time.time()
         self.canvas.delete("all")
 
         renderer = Renderer(
@@ -110,6 +112,7 @@ class Window:
 
         for line in list_of_lines:
             self.canvas.create_line(line.to_tuple(), fill=line.color, width=2)
+        print(f'Rendered frame in {round(time.time() - start_time, 3)} seconds')
 
     def rotate_y_plus(self):
         self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, -1, 0)) * self.camera_angle

@@ -101,12 +101,11 @@ def _convert_vertex_to_2d(vertex: internals.objects.Vertex, tan_fy: float, aspec
                           screen_height: int, camera_angle: internals.vectors.Quaternion) \
         -> tuple[internals.objects.Point2D, float]:
 
-    position = internals.vectors.Vector(*vertex.to_tuple()) - camera_position
+    # position = vertex - camera_position
 
-    rotated_position = internals.vectors.rotate_vector_by_quaternion(position, camera_angle)
+    rotated_position = internals.vectors.rotate_vector_by_quaternion(vertex - camera_position, camera_angle)
 
-    d_min = 0.1
-    if rotated_position.z < d_min:
+    if rotated_position.z < 0.1:
         raise FrustrumCullingException
 
     res_y = int(rotated_position.y * screen_height / (
