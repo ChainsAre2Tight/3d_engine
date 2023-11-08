@@ -159,10 +159,12 @@ def rotate_vector_by_quaternion(vector: Vector, quaternion: Quaternion) -> Vecto
     )
 
 
+def get_cosine(v1: Vector, v2: Vector) -> float:
+    return v1.dot_product(v2) / (v1.length * v2.length)
 
 
 def calculate_angle(v1: Vector, v2: Vector) -> float:
-    return math.acos(v1.dot_product(v2) / (v1.length * v2.length))
+    return math.acos(get_cosine(v1, v2))
 
 
 if __name__ == "__main__":
