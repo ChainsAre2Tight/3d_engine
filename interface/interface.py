@@ -8,12 +8,15 @@ from internals.render import Renderer
 from internals.vectors import Vector, Quaternion
 
 
+base_camera_position = Vector(0, 0, -5)
+base_camera_angle = Quaternion.from_euler(0, (0, 1, 0))
+
 class Window:
     fov = math.pi / 2
     aspect_ratio = 1
-    camera_position = Vector(0, 0, -5)
+    camera_position = base_camera_position
     screen_height = 800
-    camera_angle = Quaternion.from_euler(0, (0, 1, 0))
+    camera_angle = base_camera_angle
     move_magnitude = 0.5
     rotate_magnitude = math.radians(10)
     scene_light = internals.rgb.Light(
@@ -44,7 +47,7 @@ class Window:
         self.rotate_button_frame.pack(side="left")
         self.rotate_center_frame = Frame(self.rotate_button_frame)
         self.rotate_right_frame = Frame(self.rotate_button_frame)
-        self.refresh_button = ttk.Button(self.rotate_center_frame, text="Обновить", command=self.refresh)
+        self.refresh_button = ttk.Button(self.rotate_center_frame, text="0", command=self.reset_rotation)
         self.rotate_x_plus_button = ttk.Button(self.rotate_right_frame, text="+y", command=self.rotate_y_plus)
         self.rotate_x_minus_button = ttk.Button(self.rotate_button_frame, text="-y", command=self.rotate_y_minus)
         self.rotate_x_minus_button.pack(side="left")
@@ -65,7 +68,7 @@ class Window:
         self.move_button_frame.pack(side="right")
         self.move_center_frame = Frame(self.move_button_frame)
         self.move_right_frame = Frame(self.move_button_frame)
-        self.lox_button = ttk.Button(self.move_center_frame, text="", command="")
+        self.lox_button = ttk.Button(self.move_center_frame, text="0", command=self.reset_position)
         self.move_x_plus_button = ttk.Button(self.move_right_frame, text="d", command=self.move_right)
         self.move_x_minus_button = ttk.Button(self.move_button_frame, text="a", command=self.move_left)
         self.move_x_minus_button.pack(side="left")
@@ -131,6 +134,10 @@ class Window:
         self.camera_angle = Quaternion.from_euler(math.radians(5), (0, 0, 1)) * self.camera_angle
         self.refresh()
 
+    def reset_rotation(self):
+        self.camera_angle = base_camera_angle
+        self.refresh()
+
     def move_right(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
             internals.vectors.Vector(1, 0, 0) * self.move_magnitude, self.camera_angle.invert())
@@ -159,6 +166,10 @@ class Window:
     def move_backward(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
             internals.vectors.Vector(0, 0, -1) * self.move_magnitude, self.camera_angle.invert())
+        self.refresh()
+
+    def reset_position(self):
+        self.camera_position = base_camera_position
         self.refresh()
 
 
