@@ -1,7 +1,6 @@
 import random
 import internals.vectors
 
-
 class RGB:
     _r: int
     _g: int
@@ -70,9 +69,9 @@ class RGB:
     def __mul__(self, other):
         if type(other) == float or type(other) == int:
             return RGB(
-                r=self.r*other,
-                g=self.g*other,
-                b=self.b*other,
+                r=self.r * other,
+                g=self.g * other,
+                b=self.b * other,
             )
         else:
             raise NotImplementedError(type(other))
@@ -85,21 +84,25 @@ def light_gray_color():
 if __name__ == "__main__":
     print(light_gray_color().to_hex())
 
+colors = [
+    RGB(50, 128, 200),
+    RGB(128, 50, 200),
+    RGB(128, 200, 50),
+    RGB(230, 20, 20),
+    RGB(20, 230, 20),
+    RGB(20, 20, 230),
 
-def random_color(exclude: str = '') -> str:
-    colors = [
-        "black",
-        # "white",
-        "red",
-        "green",
-        "blue",
-        "cyan",
-        "yellow",
-        "magenta",
-    ]
-    if exclude != "":
-        colors.remove(exclude)
+]
+
+
+def random_color() -> RGB:
+    global colors
     return random.choice(colors)
+
+
+def next_color() -> RGB:
+    global colors
+    return colors.pop(0)
 
 
 class Light:
