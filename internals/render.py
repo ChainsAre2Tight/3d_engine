@@ -7,7 +7,7 @@ import math
 
 class Renderer:
     data_handler: internals.handlers.DataHandler
-    fov: float | int
+    tan_fy: float
     aspect_ratio: float
     camera_position: internals.vectors.Vector
     screen_height: int
@@ -16,7 +16,7 @@ class Renderer:
 
     def __init__(self,
                  data_handler: internals.handlers.DataHandler,
-                 fov: float | int,
+                 tan_fy: float,
                  aspect_ratio: float,
                  camera_position: internals.vectors.Vector,
                  screen_height: int,
@@ -24,7 +24,7 @@ class Renderer:
                  light: internals.rgb.Light,
                  ):
         self.data_handler = data_handler
-        self.fov = fov
+        self.tan_fy = tan_fy
         self.aspect_ratio = aspect_ratio
         self.camera_position = camera_position
         self.screen_height = screen_height
@@ -41,7 +41,7 @@ class Renderer:
             try:
                 canvas_polygon, depth = _convert_polygon_to_2d(
                     polygon=polygon,
-                    fov=self.fov,
+                    tan_fy=self.tan_fy,
                     aspect_ratio=self.aspect_ratio,
                     camera_position=self.camera_position,
                     screen_height=self.screen_height,
@@ -71,7 +71,7 @@ class Renderer:
             try:
                 canvas_line, depth = _convert_line_to_2d(
                     line=line,
-                    fov=self.fov,
+                    tan_fy=self.tan_fy,
                     aspect_ratio=self.aspect_ratio,
                     camera_position=self.camera_position,
                     screen_height=self.screen_height,
@@ -96,12 +96,10 @@ class NormalCullingException(Exception):
     pass
 
 
-def _convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, aspect_ratio: float,
+def _convert_vertex_to_2d(vertex: internals.objects.Vertex, tan_fy: float, aspect_ratio: float,
                           camera_position: internals.vectors.Vector,
                           screen_height: int, camera_angle: internals.vectors.Quaternion) \
         -> tuple[internals.objects.Point2D, float]:
-    # TODO calculate it once and pass as argument
-    tan_fy = math.tan(fov / 2)
 
     position = internals.vectors.Vector(*vertex.to_tuple()) - camera_position
 
@@ -129,7 +127,7 @@ def _convert_vertex_to_2d(vertex: internals.objects.Vertex, fov: float | int, as
     return internals.objects.Point2D(res_x, res_y), depth
 
 
-def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int, aspect_ratio: float,
+def _convert_polygon_to_2d(polygon: internals.objects.Polygon, tan_fy: float, aspect_ratio: float,
                            camera_position: internals.vectors.Vector,
                            screen_height: int, camera_angle: internals.vectors.Quaternion,
                            depth_interpolation_method: str,
@@ -155,7 +153,7 @@ def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int,
                 flag = True
             point, depth = _convert_vertex_to_2d(
                 vertex=vertex,
-                fov=fov,
+                tan_fy=tan_fy,
                 aspect_ratio=aspect_ratio,
                 camera_position=camera_position,
                 screen_height=screen_height,
@@ -182,7 +180,7 @@ def _convert_polygon_to_2d(polygon: internals.objects.Polygon, fov: float | int,
     return internals.objects.CanvasPolygon(*resulting_vertices, color=new_color), resulting_depth
 
 
-def _convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_ratio: float,
+def _convert_line_to_2d(line: internals.objects.Line, tan_fy: float, aspect_ratio: float,
                         camera_position: internals.vectors.Vector,
                         screen_height: int, camera_angle: internals.vectors.Quaternion) -> tuple[
     internals.objects.CanvasLine, float]:
@@ -192,7 +190,7 @@ def _convert_line_to_2d(line: internals.objects.Line, fov: float | int, aspect_r
         for vertex in line.vertices:
             point, depth = _convert_vertex_to_2d(
                 vertex=vertex,
-                fov=fov,
+                tan_fy=tan_fy,
                 aspect_ratio=aspect_ratio,
                 camera_position=camera_position,
                 screen_height=screen_height,

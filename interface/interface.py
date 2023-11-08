@@ -7,12 +7,13 @@ import internals.rgb
 from internals.render import Renderer
 from internals.vectors import Vector, Quaternion
 
-
 base_camera_position = Vector(0, 0, -5)
 base_camera_angle = Quaternion.from_euler(0, (0, 1, 0))
 
+
 class Window:
     fov = math.pi / 2
+    tan_fy = math.tan(fov / 2)
     aspect_ratio = 1
     camera_position = base_camera_position
     screen_height = 800
@@ -92,7 +93,7 @@ class Window:
 
         renderer = Renderer(
             data_handler=self.data_handler,
-            fov=self.fov,
+            tan_fy = self.tan_fy,
             aspect_ratio=self.aspect_ratio,
             camera_position=self.camera_position,
             screen_height=self.screen_height,
