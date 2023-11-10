@@ -8,7 +8,7 @@ import internals.rgb
 from internals.render import Renderer
 from internals.vectors import Vector, Quaternion
 
-base_camera_position = Vector(0, 0, -5)
+base_camera_position = Vector(0, -5, 0)
 base_camera_angle = Quaternion.from_euler(0, (0, 1, 0))
 
 
@@ -38,7 +38,7 @@ class Window:
 
         # initialize handlers
         self.data_handler = internals.handlers.DataHandler()
-        self.data_handler.read_file(file_path="../data", file_name="monkey.obj")
+        self.data_handler.read_file(file_path="../data", file_name="monkey_2.obj")
 
         # initialize and place widgets
         self.canvas = Canvas(self.root, width=int(self.aspect_ratio * self.screen_height), height=self.screen_height,
@@ -50,17 +50,17 @@ class Window:
         self.rotate_center_frame = Frame(self.rotate_button_frame)
         self.rotate_right_frame = Frame(self.rotate_button_frame)
         self.refresh_button = ttk.Button(self.rotate_center_frame, text="0", command=self.reset_rotation)
-        self.rotate_x_plus_button = ttk.Button(self.rotate_right_frame, text="+y", command=self.rotate_y_plus)
-        self.rotate_x_minus_button = ttk.Button(self.rotate_button_frame, text="-y", command=self.rotate_y_minus)
+        self.rotate_x_plus_button = ttk.Button(self.rotate_right_frame, text="+y", command=self.rotate_left)
+        self.rotate_x_minus_button = ttk.Button(self.rotate_button_frame, text="-y", command=self.rotate_right)
         self.rotate_x_minus_button.pack(side="left")
-        self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="+x", command=self.rotate_x_plus)
+        self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="+x", command=self.rotate_up)
         self.rotate_y_minus_button.pack(side="top")
-        self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="-x", command=self.rotate_x_minus)
+        self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="-x", command=self.rotate_down)
         self.rotate_y_minus_button.pack(side="bottom")
-        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="+z", command=self.rotate_z_plus)
+        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="+z", command=self.rotate_counterclockwise)
         self.rotate_z_minus_button.pack(side="top")
         self.rotate_x_plus_button.pack(side="top")
-        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="-z", command=self.rotate_z_minus)
+        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="-z", command=self.rotate_clockwise)
         self.rotate_z_minus_button.pack(side="bottom")
         self.rotate_right_frame.pack(side="right")
         self.rotate_center_frame.pack()
@@ -114,28 +114,28 @@ class Window:
             self.canvas.create_line(line.to_tuple(), fill=line.color, width=2)
         print(f'Rendered frame in {round(time.time() - start_time, 3)} seconds')
 
-    def rotate_y_plus(self):
-        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, -1, 0)) * self.camera_angle
+    def rotate_left(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 0, 1)) * self.camera_angle
         self.refresh()
 
-    def rotate_y_minus(self):
-        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 1, 0)) * self.camera_angle
-        self.refresh()
-
-    def rotate_x_plus(self):
-        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (-1, 0, 0)) * self.camera_angle
-        self.refresh()
-
-    def rotate_x_minus(self):
-        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (1, 0, 0)) * self.camera_angle
-        self.refresh()
-
-    def rotate_z_plus(self):
+    def rotate_right(self):
         self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 0, -1)) * self.camera_angle
         self.refresh()
 
-    def rotate_z_minus(self):
-        self.camera_angle = Quaternion.from_euler(math.radians(5), (0, 0, 1)) * self.camera_angle
+    def rotate_up(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (1, 0, 0)) * self.camera_angle
+        self.refresh()
+
+    def rotate_down(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (-1, 0, 0)) * self.camera_angle
+        self.refresh()
+
+    def rotate_clockwise(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 1, 0)) * self.camera_angle
+        self.refresh()
+
+    def rotate_counterclockwise(self):
+        self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, -1, 0)) * self.camera_angle
         self.refresh()
 
     def reset_rotation(self):
@@ -154,22 +154,22 @@ class Window:
 
     def move_up(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
-            internals.vectors.Vector(0, -1, 0) * self.move_magnitude, self.camera_angle.invert())
+            internals.vectors.Vector(0, 0, -1) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
     def move_down(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
-            internals.vectors.Vector(0, 1, 0) * self.move_magnitude, self.camera_angle.invert())
+            internals.vectors.Vector(0, 0, 1) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
     def move_forward(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
-            internals.vectors.Vector(0, 0, 1) * self.move_magnitude, self.camera_angle.invert())
+            internals.vectors.Vector(0, 1, 0) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
     def move_backward(self):
         self.camera_position += internals.vectors.rotate_vector_by_quaternion(
-            internals.vectors.Vector(0, 0, -1) * self.move_magnitude, self.camera_angle.invert())
+            internals.vectors.Vector(0, -1, 0) * self.move_magnitude, self.camera_angle.invert())
         self.refresh()
 
     def reset_position(self):

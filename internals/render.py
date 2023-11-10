@@ -105,13 +105,13 @@ def _convert_vertex_to_2d(vertex: internals.objects.Vertex, tan_fy: float, aspec
 
     rotated_position = internals.vectors.rotate_vector_by_quaternion(vertex - camera_position, camera_angle)
 
-    if rotated_position.z < 0.1:
+    if rotated_position.y < 0.1:
         raise FrustrumCullingException
 
-    res_y = int(rotated_position.y * screen_height / (
-            2 * rotated_position.z * tan_fy)) + screen_height // 2
+    res_y = int(rotated_position.z * screen_height / (
+            2 * rotated_position.y * tan_fy)) + screen_height // 2
     res_x = int(rotated_position.x * screen_height / (
-            2 * aspect_ratio * rotated_position.z * tan_fy)) + screen_height * aspect_ratio // 2
+            2 * aspect_ratio * rotated_position.y * tan_fy)) + screen_height * aspect_ratio // 2
 
     depth = rotated_position.length
 
