@@ -57,7 +57,8 @@ class Window:
         self.rotate_y_minus_button.pack(side="top")
         self.rotate_y_minus_button = ttk.Button(self.rotate_center_frame, text="-x", command=self.rotate_down)
         self.rotate_y_minus_button.pack(side="bottom")
-        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="+z", command=self.rotate_counterclockwise)
+        self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="+z",
+                                                command=self.rotate_counterclockwise)
         self.rotate_z_minus_button.pack(side="top")
         self.rotate_x_plus_button.pack(side="top")
         self.rotate_z_minus_button = ttk.Button(self.rotate_right_frame, text="-z", command=self.rotate_clockwise)
@@ -95,7 +96,7 @@ class Window:
 
         renderer = Renderer(
             data_handler=self.data_handler,
-            tan_fy = self.tan_fy,
+            tan_fy=self.tan_fy,
             aspect_ratio=self.aspect_ratio,
             camera_position=self.camera_position,
             screen_height=self.screen_height,
@@ -104,6 +105,7 @@ class Window:
         )
 
         list_of_polygons = renderer.render_polygons()
+        render_time = time.time()
 
         for polygon in list_of_polygons:
             self.canvas.create_polygon(polygon.to_tuple(), fill=polygon.color.to_hex())
@@ -112,7 +114,9 @@ class Window:
 
         for line in list_of_lines:
             self.canvas.create_line(line.to_tuple(), fill=line.color, width=2)
-        print(f'Rendered frame in {round(time.time() - start_time, 3)} seconds')
+        end_time = time.time()
+        print(
+            f'Frame rendered/drawn/total: \t {round(render_time - start_time, 3)} \t {round(end_time - render_time, 3)} \t {round(end_time - start_time, 3)} seconds')
 
     def rotate_left(self):
         self.camera_angle = Quaternion.from_euler(self.rotate_magnitude, (0, 0, 1)) * self.camera_angle
