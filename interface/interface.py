@@ -37,8 +37,8 @@ class Window:
         self.root.geometry(f'{int(self.screen_height * self.aspect_ratio)}x{self.screen_height + 100}')
 
         # initialize handlers
-        self.data_handler = internals.handlers.DataHandler()
-        self.data_handler.read_file(file_path="../data", file_name="monkey_2.obj")
+        self.data_handler = internals.handlers.SceneData()
+        self.data_handler.read_file(file_path="../data", file_name="torus.obj")
 
         # initialize and place widgets
         self.canvas = Canvas(self.root, width=int(self.aspect_ratio * self.screen_height), height=self.screen_height,

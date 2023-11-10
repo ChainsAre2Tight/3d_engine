@@ -6,7 +6,7 @@ import math
 
 
 class Renderer:
-    data_handler: internals.handlers.DataHandler
+    data_handler: internals.handlers.SceneData
     tan_fy: float
     aspect_ratio: float
     camera_position: internals.vectors.Vector
@@ -15,7 +15,7 @@ class Renderer:
     light: internals.rgb.Light
 
     def __init__(self,
-                 data_handler: internals.handlers.DataHandler,
+                 data_handler: internals.handlers.SceneData,
                  tan_fy: float,
                  aspect_ratio: float,
                  camera_position: internals.vectors.Vector,

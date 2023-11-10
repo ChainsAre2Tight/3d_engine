@@ -122,7 +122,7 @@ class FileHandler(_AbstractHandler):
         return res
 
 
-class DataHandler(_AbstractHandler):
+class SceneData(_AbstractHandler):
     _lines: list[internals.objects.Line]
     _vertices: list[internals.objects.Vertex]
     _polygons: list[internals.objects.Polygon]
