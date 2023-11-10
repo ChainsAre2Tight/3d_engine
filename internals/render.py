@@ -32,12 +32,9 @@ class Renderer:
         self.light = light
 
     def render_polygons(self) -> list[internals.objects.CanvasPolygon]:
-
-        list_of_polygons = self.data_handler.get_polygons()
-
         list_of_canvas_polygons_unsorted = []
 
-        for polygon in list_of_polygons:
+        for polygon in self.data_handler.get_polygons():
             try:
                 canvas_polygon, depth = _convert_polygon_to_2d(
                     polygon=polygon,
@@ -63,11 +60,8 @@ class Renderer:
 
     def render_lines(self) -> list[internals.objects.CanvasLine]:
 
-        list_of_lines = self.data_handler.get_lines()
-
         list_of_canvas_lines_unsorted = []
-
-        for line in list_of_lines:
+        for line in self.data_handler.get_lines():
             try:
                 canvas_line, depth = _convert_line_to_2d(
                     line=line,
