@@ -102,10 +102,12 @@ def _convert_vertex_to_2d(vertex: internals.objects.Vertex, tan_fy: float, aspec
     if rotated_position.y < 0.1:
         raise FrustrumCullingException
 
+
+    # For some reason, aspect ratio is not needed
     res_y = int(rotated_position.z * screen_height / (
             2 * rotated_position.y * tan_fy)) + screen_height // 2
     res_x = int(rotated_position.x * screen_height / (
-            2 * aspect_ratio * rotated_position.y * tan_fy)) + screen_height * aspect_ratio // 2
+            2 * rotated_position.y * tan_fy)) + screen_height * aspect_ratio // 2
 
     depth = rotated_position.length
 

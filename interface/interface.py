@@ -15,7 +15,7 @@ base_camera_angle = Quaternion.from_euler(0, (0, 1, 0))
 class Window:
     fov = math.pi / 2
     tan_fy = math.tan(fov / 2)
-    aspect_ratio = 1
+    aspect_ratio = 1.5
     camera_position = base_camera_position
     screen_height = 800
     camera_angle = base_camera_angle
